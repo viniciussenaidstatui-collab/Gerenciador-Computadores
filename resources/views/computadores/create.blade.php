@@ -160,14 +160,15 @@
 
                         <div>
                             <label
-                                for="numero"
+                                for="numero_patrimonio"
                                 class="mb-1.5 block text-sm font-semibold text-[#2D3DAB]"
                             >
                                 Número do computador
                             </label>
 
                             <input
-                                id="numero"
+                                id="numero_patrimonio"
+                                name="numero_patrimonio"
                                 name="numero"
                                 type="number"
                                 value="{{ old('numero') }}"

@@ -3,7 +3,6 @@
 namespace Database\Factories;
 
 use App\Models\Computador;
-use App\Models\Usuario;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -19,14 +18,8 @@ class ComputadorFactory extends Factory
     public function definition(): array
     {
         return [
-            'numero' => fake()->unique()->numberBetween(1, 999999),
+            'numero_patrimonio' => fake()->unique()->bothify('PAT-#####'),
+            'status' => 'disponivel',
         ];
-    }
-
-    public function paraUsuario(Usuario $usuario): static
-    {
-        return $this->state(fn (): array => [
-            'usuario_id' => $usuario->id,
-        ]);
     }
 }

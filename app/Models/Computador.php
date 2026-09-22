@@ -5,7 +5,7 @@ namespace App\Models;
 use Database\Factories\ComputadorFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Computador extends Model
 {
@@ -15,19 +15,19 @@ class Computador extends Model
     protected $table = 'computadores';
 
     protected $fillable = [
-        'numero',
-        'usuario_id',
+        'numero_patrimonio',
+        'status',
     ];
 
     protected function casts(): array
     {
         return [
-            'numero' => 'integer',
+            'numero_patrimonio' => 'string',
         ];
     }
 
-    public function usuario(): BelongsTo
+    public function emprestimos(): HasMany
     {
-        return $this->belongsTo(Usuario::class, 'usuario_id');
+        return $this->hasMany(Emprestimo::class);
     }
 }

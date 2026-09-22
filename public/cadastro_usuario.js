@@ -1,6 +1,5 @@
 $(document).ready(function () {
 
-    // Garante que todo POST via $.ajax mande o token CSRF exigido pelo Laravel
     $.ajaxSetup({
         headers: {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -22,13 +21,7 @@ $(document).ready(function () {
             },
             success: function (response) {
                 if (response.erro == 'n') {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Sucesso!',
-                        text: response.mensagem,
-                    }).then(() => {
-                        document.getElementById("form-cadastro-usuario").reset();
-                    });
+                    window.location.href = "/login";
                 } else {
                     Swal.fire({
                         icon: 'error',

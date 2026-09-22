@@ -30,21 +30,25 @@ class LoginController extends Controller
             ], 200);
         }
 
-        $request->session()->regenerate();
-        $request->session()->put('usuario_id', $usuario->id);
+        if (! $request->is('api/*')) {
+            $request->session()->regenerate();
+            $request->session()->put('usuario_id', $usuario->id);
+        }
 
         $tokenUsuario = new TokenUsuario;
         $tokenUsuario->usuario_id = $usuario->id;
         $tokenUsuario->token = bin2hex(random_bytes(32));
         $tokenUsuario->valido_ate = now()->addDays(2);
         $tokenUsuario->save();
-        $request->session()->put('token_usuario', $tokenUsuario->token);
+        if (! $request->is('api/*')) {
+            $request->session()->put('token_usuario', $tokenUsuario->token);
+        }
 
         return response()->json([
             'erro' => 'n',
             'mensagem' => 'Login realizado com sucesso!',
             'token' => $tokenUsuario->token,
-            'redirect' => route('home'),
+            'redirect' => $request->is('api/*') ? null : route('home'),
         ], 200);
     }
 
@@ -75,6 +79,21 @@ class LoginController extends Controller
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
+        return response()->json([
+            'mensagem' => 'Logout realizado com sucesso.',
+        ]);
+    }
+
+    public function logoutApi(Request $request)
+    {
+        $token = $request->bearerToken();
+
+        if (! $token) {
+            return response()->json(['mensagem' => 'Token não informado.'], 401);
+        }
+
+        TokenUsuario::where('token', $token)->delete();
 
         return response()->json([
             'mensagem' => 'Logout realizado com sucesso.',

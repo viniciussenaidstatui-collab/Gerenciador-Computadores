@@ -33,14 +33,14 @@ class ComputadorControllerTest extends TestCase
         $usuario = $this->usuarioAutenticado();
 
         $this->post(route('computadores.store'), [
-            'numero' => 20,
+            'numero_patrimonio' => 'PAT-00020',
             'senha_confirmacao' => 'senha-segura',
-        ])->assertRedirect(route('computadores.create'))
+        ])->assertRedirect(route('home'))
             ->assertSessionHas('success', 'Computador registrado com sucesso.');
 
         $this->assertDatabaseHas('computadores', [
-            'numero' => 20,
-            'usuario_id' => $usuario->id,
+            'numero_patrimonio' => 'PAT-00020',
+            'status' => 'disponivel',
         ]);
     }
 
@@ -48,19 +48,18 @@ class ComputadorControllerTest extends TestCase
     {
         $outroUsuario = $this->criarUsuario('Outro Usuário', 'outro@example.com', '98765432100');
         Computador::query()->create([
-            'numero' => 20,
-            'usuario_id' => $outroUsuario->id,
+            'numero_patrimonio' => 'PAT-00020',
         ]);
 
         $this->usuarioAutenticado();
 
         $this->from(route('computadores.create'))
             ->post(route('computadores.store'), [
-                'numero' => 20,
+                'numero_patrimonio' => 'PAT-00020',
                 'senha_confirmacao' => 'senha-segura',
             ])->assertRedirect(route('computadores.create'))
             ->assertSessionHasErrors([
-                'numero' => 'Este número de computador já está registrado.',
+                'numero_patrimonio' => 'Este número de patrimônio já está registrado.',
             ]);
 
         $this->assertSame(1, Computador::query()->count());
@@ -72,14 +71,14 @@ class ComputadorControllerTest extends TestCase
 
         $this->from(route('computadores.create'))
             ->post(route('computadores.store'), [
-                'numero' => 20,
+                'numero_patrimonio' => 'PAT-00020',
                 'senha_confirmacao' => 'senha-incorreta',
             ])->assertRedirect(route('computadores.create'))
             ->assertSessionHasErrors([
                 'senha_confirmacao' => 'A senha informada está incorreta.',
             ]);
 
-        $this->assertDatabaseMissing('computadores', ['numero' => 20]);
+        $this->assertDatabaseMissing('computadores', ['numero_patrimonio' => 'PAT-00020']);
     }
 
     private function usuarioAutenticado(): Usuario

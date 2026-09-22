@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Computador;
+use App\Models\TokenUsuario;
 use App\Models\Usuario;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -21,10 +22,10 @@ class ComputadorController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'numero' => ['required', 'integer', 'unique:computadores,numero'],
+            'numero_patrimonio' => ['required', 'string', 'max:255', 'unique:computadores,numero_patrimonio'],
             'senha_confirmacao' => ['required', 'string'],
         ], [
-            'numero.unique' => 'Este número de computador já está registrado.',
+            'numero_patrimonio.unique' => 'Este número de patrimônio já está registrado.',
             'senha_confirmacao.required' => 'Informe sua senha para confirmar o registro.',
         ]);
 
@@ -37,13 +38,56 @@ class ComputadorController extends Controller
         }
 
         Computador::query()->create([
-            'numero' => $validated['numero'],
-            'usuario_id' => $usuario->id,
+            'numero_patrimonio' => $validated['numero_patrimonio'],
         ]);
 
         return redirect()
             ->route('home')
             ->with('success', 'Computador registrado com sucesso.');
+    }
+
+    public function storeApi(Request $request)
+    {
+        $token = $request->bearerToken();
+        $tokenUsuario = $token
+            ? TokenUsuario::query()
+                ->where('token', $token)
+                ->where('valido_ate', '>', now())
+                ->first()
+            : null;
+
+        if (! $tokenUsuario) {
+            return response()->json(['mensagem' => 'Token inválido ou expirado.'], 401);
+        }
+
+        $usuario = Usuario::query()->find($tokenUsuario->usuario_id);
+
+        if (! $usuario) {
+            return response()->json(['mensagem' => 'Usuário não encontrado.'], 401);
+        }
+
+        $validated = $request->validate([
+            'numero_patrimonio' => ['required', 'string', 'max:255', 'unique:computadores,numero_patrimonio'],
+            'senha_confirmacao' => ['required', 'string'],
+        ], [
+            'numero_patrimonio.unique' => 'Este número de patrimônio já está registrado.',
+            'senha_confirmacao.required' => 'Informe sua senha para confirmar o registro.',
+        ]);
+
+        if (! Hash::check($validated['senha_confirmacao'], $usuario->senha)) {
+            return response()->json([
+                'mensagem' => 'A senha informada está incorreta.',
+            ], 422);
+        }
+
+        $computador = Computador::query()->create([
+            'numero_patrimonio' => $validated['numero_patrimonio'],
+        ]);
+
+        return response()->json([
+            'mensagem' => 'Computador registrado com sucesso.',
+            'computador' => $computador,
+        ], 201);
     }
 
     private function usuarioAutenticado(Request $request): Usuario

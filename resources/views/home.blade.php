@@ -208,6 +208,10 @@
                     Cadastrar Computador
                 </a>
 
+                <a href="{{ route('emprestimos.create') }}" class="btn">
+                    Retirar ou devolver computador
+                </a>
+
             </div>
 
         </section>

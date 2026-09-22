@@ -64,6 +64,6 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <!-- Script de cadastro -->
-    <script src="{{ asset('cadastro_usuario.js') }}"></script>
+    <script src="{{ asset('cadastro_usuario.js') }}?v={{ filemtime(public_path('cadastro_usuario.js')) }}"></script>
 </body>
 </html>
