@@ -113,10 +113,7 @@ class EmprestimoControllerTest extends TestCase
             'valido_ate' => now()->addDay(),
         ]);
 
-        $this->withSession([
-            'usuario_id' => $usuario->id,
-            'token_usuario' => $token,
-        ]);
+        $this->withUnencryptedCookie('token_usuario', $token);
 
         return $usuario;
     }

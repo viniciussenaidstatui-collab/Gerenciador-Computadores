@@ -1,5 +1,6 @@
-import $ from 'jquery';
 import Swal from 'sweetalert2';
+
+const $ = window.jQuery;
 
 $(document).ready(function () {
     $("#formulario-login").submit(function (evento) {
@@ -33,7 +34,7 @@ $(document).ready(function () {
                     return;
                 }
 
-                localStorage.setItem("token_usuario", response.token);
+                $.cookie("token_usuario", response.token, { expires: 7, path: "/" });
 
                 Swal.fire({
                     icon: "success",

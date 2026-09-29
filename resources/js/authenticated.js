@@ -1,7 +1,6 @@
-const token = localStorage.getItem('token_usuario');
+const $ = window.jQuery;
+const token = $.cookie('token_usuario');
 const logoutButton = document.querySelector('#logout-button');
-
-console.log('Token atual:', token);
 
 if (!token) {
     window.location.replace('/login');
@@ -9,15 +8,14 @@ if (!token) {
     fetch('/api/token/validate', {
         headers: {
             Accept: 'application/json',
-            Authorization: `Bearer ${token}`,
         },
     }).then((response) => {
         if (!response.ok) {
-            localStorage.removeItem('token_usuario');
+            $.cookie('token_usuario', '', { expires: -1, path: '/' });
             window.location.replace('/login');
         }
     }).catch(() => {
-        localStorage.removeItem('token_usuario');
+        $.cookie('token_usuario', '', { expires: -1, path: '/' });
         window.location.replace('/login');
     });
 }
@@ -38,7 +36,7 @@ logoutButton?.addEventListener('click', async () => {
             throw new Error('Não foi possível sair.');
         }
 
-        localStorage.removeItem('token_usuario');
+        $.cookie('token_usuario', '', { expires: -1, path: '/' });
         window.location.replace('/login');
     } catch (error) {
         logoutButton.disabled = false;

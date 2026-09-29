@@ -3,7 +3,7 @@
 use App\Http\Controllers\ComputadorController;
 use App\Http\Controllers\EmprestimoController;
 use App\Http\Controllers\LoginController;
-use App\Http\Middleware\EnsureValidToken;
+use App\Http\Middleware\LoggadoMiddleware;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -19,13 +19,13 @@ Route::get('/login', function () {
 })->name('login_usuario');
 
 Route::post('/login', [LoginController::class, 'autenticar']);
-Route::post('/logout', [LoginController::class, 'logout'])->middleware(EnsureValidToken::class);
+Route::post('/logout', [LoginController::class, 'logout'])->middleware(LoggadoMiddleware::class);
 
 Route::get('/home', function () {
     return view('home');
-})->middleware(EnsureValidToken::class)->name('home');
+})->middleware(LoggadoMiddleware::class)->name('home');
 
-Route::middleware(EnsureValidToken::class)->group(function () {
+Route::middleware(LoggadoMiddleware::class)->group(function () {
     Route::get('/computadores/registrar', [ComputadorController::class, 'create'])
         ->name('computadores.create');
     Route::post('/computadores/registrar', [ComputadorController::class, 'store'])

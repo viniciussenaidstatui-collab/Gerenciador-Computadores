@@ -98,8 +98,103 @@ class EmprestimoController extends Controller
             ->with('success', 'Computador devolvido com sucesso.');
     }
 
+    public function storeApi(Request $request)
+    {
+        $validated = $request->validate([
+            'computador_id' => ['required', 'integer', 'exists:computadores,id'],
+        ]);
+        $usuario = $this->usuarioApiAutenticado($request);
+
+        $emprestimo = DB::transaction(function () use ($validated, $usuario): Emprestimo {
+            $computador = Computador::query()
+                ->whereKey($validated['computador_id'])
+                ->lockForUpdate()
+                ->first();
+
+            if (! $computador || $computador->status !== 'disponivel') {
+                throw ValidationException::withMessages([
+                    'computador_id' => 'Este computador não está disponível para retirada.',
+                ]);
+            }
+
+            $emprestimo = Emprestimo::query()->create([
+                'computador_id' => $computador->id,
+                'usuario_id' => $usuario->id,
+                'retirado_em' => now(),
+            ]);
+
+            $computador->update(['status' => 'em_uso']);
+
+            return $emprestimo->load('computador');
+        });
+
+        return response()->json([
+            'mensagem' => 'Computador retirado com sucesso.',
+            'emprestimo' => $emprestimo,
+        ], 201);
+    }
+
+    public function devolverApi(Request $request, Emprestimo $emprestimo)
+    {
+        $usuario = $this->usuarioApiAutenticado($request);
+
+        try {
+            DB::transaction(function () use ($emprestimo, $usuario): void {
+                $emprestimo = Emprestimo::query()
+                    ->whereKey($emprestimo->id)
+                    ->whereBelongsTo($usuario)
+                    ->whereNull('devolvido_em')
+                    ->lockForUpdate()
+                    ->firstOrFail();
+                $computador = Computador::query()
+                    ->whereKey($emprestimo->computador_id)
+                    ->lockForUpdate()
+                    ->firstOrFail();
+
+                $emprestimo->update(['devolvido_em' => now()]);
+                $computador->update(['status' => 'disponivel']);
+            });
+        } catch (ModelNotFoundException) {
+            return response()->json([
+                'mensagem' => 'Empréstimo não encontrado ou já devolvido.',
+            ], 404);
+        }
+
+        return response()->json(['mensagem' => 'Computador devolvido com sucesso.']);
+    }
+
+    public function listarAtivosApi(Request $request)
+    {
+        $usuario = $this->usuarioApiAutenticado($request);
+        $emprestimos = Emprestimo::query()
+            ->with('computador')
+            ->whereBelongsTo($usuario)
+            ->whereNull('devolvido_em')
+            ->latest('retirado_em')
+            ->get();
+
+        return response()->json(['emprestimos' => $emprestimos]);
+    }
+
+    public function historicoApi(Request $request)
+    {
+        $usuario = $this->usuarioApiAutenticado($request);
+        $emprestimos = Emprestimo::query()
+            ->with('computador')
+            ->whereBelongsTo($usuario)
+            ->latest('retirado_em')
+            ->get();
+
+        return response()->json(['emprestimos' => $emprestimos]);
+    }
+
     private function usuarioAutenticado(Request $request): Usuario
     {
         return Usuario::query()->findOrFail($request->session()->get('usuario_id'));
+    }
+
+    private function usuarioApiAutenticado(Request $request): Usuario
+    {
+        return $request->attributes->get('usuario');
     }
 }

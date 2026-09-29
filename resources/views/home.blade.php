@@ -222,6 +222,8 @@
         Gerenciador de Computadores
     </footer>
 
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery.cookie@1.4.1/jquery.cookie.min.js"></script>
     @vite('resources/js/authenticated.js')
 
 </body>
