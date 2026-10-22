@@ -11,6 +11,7 @@ export default defineConfig({
                 'resources/js/app.js',
                 'resources/js/login.js',
                 'resources/js/authenticated.js',
+                'resources/js/luzes.js',
             ],
             refresh: true,
             fonts: [

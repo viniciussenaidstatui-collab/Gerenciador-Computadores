@@ -18,6 +18,12 @@ Route::get('/login', function () {
     return view('login_usuario');
 })->name('login_usuario');
 
+Route::get('/led', function () {
+    return view('Led');
+})->name('led');
+
+
+
 Route::post('/login', [LoginController::class, 'autenticar']);
 Route::post('/logout', [LoginController::class, 'logout'])->middleware(LoggadoMiddleware::class);
 
