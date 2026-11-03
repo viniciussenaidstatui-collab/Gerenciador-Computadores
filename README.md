@@ -1,58 +1,166 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Gerenciador de Computadores
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Sistema web para controlar a **retirada e a devolução de computadores** em laboratórios de informática. Cada computador é cadastrado pelo número de patrimônio, e o sistema registra quem retirou, quando retirou e quando devolveu, mostrando em tempo real quais máquinas estão disponíveis.
 
-## About Laravel
+Projeto escolar desenvolvido no **SENAI**, na disciplina de Desenvolvimento de Sistemas.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Funcionalidades
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- **Cadastro de usuários** com nome, e-mail, senha (criptografada com bcrypt), CPF e data de nascimento.
+- **Login e logout** com token de acesso que vale por 2 dias.
+- **Cadastro de computadores** pelo número de patrimônio, com confirmação por senha do usuário logado. O número de patrimônio é único.
+- **Retirada de computador**: o usuário escolhe entre os computadores com status `disponivel`, e o computador passa para `em_uso`.
+- **Devolução de computador**: o usuário devolve apenas os próprios empréstimos ativos, e o computador volta para `disponivel`.
+- **Proteção contra retirada duplicada**: retirada e devolução rodam em transação com bloqueio de linha (`lockForUpdate`), então dois usuários não conseguem pegar o mesmo computador ao mesmo tempo.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Tecnologias
 
-## Learning Laravel
+| Camada | Tecnologia |
+| --- | --- |
+| Back-end | PHP 8.3+ e Laravel 13 |
+| Banco de dados | SQLite (padrão do `.env.example`) |
+| Front-end | Blade, Tailwind CSS 4, jQuery e SweetAlert2 |
+| Build do front-end | Vite 8 |
+| Testes | PHPUnit 12 |
+| Formatação de código | Laravel Pint |
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## Requisitos
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- PHP 8.3 ou superior, com a extensão SQLite habilitada
+- Composer
+- Node.js e npm
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## Como rodar
 
 ```bash
-composer require laravel/boost --dev
+# 1. Clonar o repositório
+git clone https://github.com/viniciussenaidstatui-collab/Gerenciador-Computadores.git
+cd Gerenciador-Computadores
 
-php artisan boost:install
+# 2. Instalar as dependências
+composer install
+npm install
+
+# 3. Configurar o ambiente
+cp .env.example .env
+php artisan key:generate
+
+# 4. Criar o banco SQLite e as tabelas
+touch database/database.sqlite
+php artisan migrate
+
+# 5. Compilar o front-end e subir o servidor (em dois terminais)
+npm run dev
+php artisan serve
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Depois é só acessar <http://localhost:8000>. Para gerar o front-end de produção, use `npm run build`.
 
-## Contributing
+O `composer setup` também existe e faz a instalação, o `.env`, a chave, as migrations e o build de uma vez.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Como usar
 
-## Code of Conduct
+1. Acesse `/cadastro_usuario` e crie uma conta.
+2. Entre em `/login` com o e-mail e a senha.
+3. Na tela inicial (`/home`), escolha uma ação:
+   - **Cadastrar Computador**: informe o número de patrimônio e confirme com a sua senha.
+   - **Retirar ou devolver computador**: retire um computador disponível ou devolva um que esteja com você.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Rotas
 
-## Security Vulnerabilities
+### Páginas e ações web
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+As rotas marcadas com 🔒 exigem login.
 
-## License
+| Método | Rota | Descrição |
+| --- | --- | --- |
+| GET | `/` | Página inicial |
+| GET | `/cadastro_usuario` | Formulário de cadastro de usuário |
+| GET | `/login` | Formulário de login |
+| POST | `/login` | Autentica o usuário |
+| POST | `/logout` 🔒 | Encerra a sessão |
+| GET | `/home` 🔒 | Tela inicial do usuário logado |
+| GET | `/computadores/registrar` 🔒 | Formulário de cadastro de computador |
+| POST | `/computadores/registrar` 🔒 | Cadastra um computador |
+| GET | `/emprestimos` 🔒 | Lista computadores disponíveis e empréstimos ativos do usuário |
+| POST | `/emprestimos` 🔒 | Registra uma retirada |
+| PATCH | `/emprestimos/{emprestimo}/devolver` 🔒 | Registra uma devolução |
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### API (`/api`)
+
+A autenticação da API usa o cabeçalho `Authorization: Bearer <token>`, com o token devolvido pelo login.
+
+| Método | Rota | Descrição |
+| --- | --- | --- |
+| POST | `/api/cadastro_usuario` | Cadastra um usuário |
+| POST | `/api/login` | Autentica e devolve o token |
+| GET | `/api/token/validate` | Confere se o token é válido |
+| POST | `/api/logout` | Invalida o token |
+| POST | `/api/computadores` | Cadastra um computador (exige token e `senha_confirmacao`) |
+
+Exemplo de login pela API:
+
+```bash
+curl -X POST http://localhost:8000/api/login \
+  -H "Accept: application/json" \
+  -H "Content-Type: application/json" \
+  -d '{"email": "aluno@exemplo.com", "senha": "123456"}'
+```
+
+## Estrutura do banco de dados
+
+**usuario**: `id`, `nome`, `email` (único), `cpf` (único), `data_nascimento`, `senha`, `timestamps`
+
+**token_usuario**: `id`, `usuario_id` (exclui em cascata), `token`, `valido_ate`, `timestamps`
+
+**computadores**: `id`, `numero_patrimonio` (único), `status` (`disponivel` ou `em_uso`, padrão `disponivel`), `timestamps`
+
+**emprestimos**: `id`, `computador_id`, `usuario_id`, `retirado_em`, `devolvido_em` (nulo enquanto o computador não foi devolvido), `timestamps`
+
+Um empréstimo está **ativo** enquanto `devolvido_em` é nulo.
+
+## Estrutura do projeto
+
+```
+app/
+├── Http/
+│   ├── Controllers/
+│   │   ├── ComputadorController.php   # cadastro de computadores (web e API)
+│   │   ├── EmprestimoController.php   # retirada e devolução
+│   │   ├── LoginController.php        # login, logout e validação de token
+│   │   └── UsuarioController.php      # cadastro de usuários
+│   └── Middleware/
+│       └── EnsureValidToken.php       # protege as rotas que exigem login
+└── Models/                            # Usuario, TokenUsuario, Computador, Emprestimo
+database/
+├── migrations/
+├── factories/
+└── seeders/
+resources/views/                       # telas em Blade
+routes/                                # web.php e api.php
+tests/Feature/                         # testes de computadores e empréstimos
+```
+
+## Testes
+
+```bash
+composer test
+```
+
+Os testes usam SQLite em memória e cobrem:
+
+- cadastro de computadores: exige login, impede número de patrimônio duplicado e senha incorreta;
+- retirada: computador disponível, indisponível e inexistente;
+- devolução: o usuário devolve o próprio empréstimo e não consegue devolver o de outro usuário.
+
+## Padrão de código
+
+O projeto usa o Laravel Pint. Depois de alterar arquivos PHP, rode:
+
+```bash
+vendor/bin/pint --dirty
+```
+
+## Licença
+
+Projeto sob a licença [MIT](https://opensource.org/licenses/MIT).

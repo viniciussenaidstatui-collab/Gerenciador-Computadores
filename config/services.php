@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'esp32' => [
+        'base_url' => env('ESP32_BASE_URL'),
+    ],
+
 ];

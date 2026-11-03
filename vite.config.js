@@ -12,6 +12,7 @@ export default defineConfig({
                 'resources/js/login.js',
                 'resources/js/authenticated.js',
                 'resources/js/luzes.js',
+                'resources/js/rfid.js',
             ],
             refresh: true,
             fonts: [

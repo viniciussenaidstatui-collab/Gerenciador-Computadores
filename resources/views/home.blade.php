@@ -212,6 +212,10 @@
                     Retirar ou devolver computador
                 </a>
 
+                <a href="{{ route('computadores.rfid.create') }}" class="btn">
+                    Cadastrar com etiqueta RFID
+                </a>
+
             </div>
 
         </section>

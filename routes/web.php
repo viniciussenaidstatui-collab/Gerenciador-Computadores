@@ -3,6 +3,7 @@
 use App\Http\Controllers\ComputadorController;
 use App\Http\Controllers\EmprestimoController;
 use App\Http\Controllers\LoginController;
+use App\Http\Controllers\RfidController;
 use App\Http\Middleware\LoggadoMiddleware;
 use Illuminate\Support\Facades\Route;
 
@@ -22,8 +23,6 @@ Route::get('/led', function () {
     return view('Led');
 })->name('led');
 
-
-
 Route::post('/login', [LoginController::class, 'autenticar']);
 Route::post('/logout', [LoginController::class, 'logout'])->middleware(LoggadoMiddleware::class);
 
@@ -36,6 +35,10 @@ Route::middleware(LoggadoMiddleware::class)->group(function () {
         ->name('computadores.create');
     Route::post('/computadores/registrar', [ComputadorController::class, 'store'])
         ->name('computadores.store');
+    Route::get('/computadores/etiqueta', [RfidController::class, 'create'])
+        ->name('computadores.rfid.create');
+    Route::post('/computadores/etiqueta', [RfidController::class, 'store'])
+        ->name('computadores.rfid.store');
     Route::get('/emprestimos', [EmprestimoController::class, 'create'])
         ->name('emprestimos.create');
     Route::post('/emprestimos', [EmprestimoController::class, 'store'])
