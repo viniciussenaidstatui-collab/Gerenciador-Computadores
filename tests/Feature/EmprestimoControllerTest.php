@@ -14,15 +14,19 @@ class EmprestimoControllerTest extends TestCase
 {
     use LazilyRefreshDatabase;
 
-    public function test_authenticated_usuario_can_withdraw_available_computer(): void
+    public function test_web_withdrawal_registers_the_selected_computer_for_the_scanned_user(): void
     {
-        $usuario = $this->usuarioAutenticado();
+        $this->usuarioAutenticado();
+        $usuario = $this->criarUsuario('Rafael', 'rafael@example.com', '12345678901', 'A1B2C3D4');
         $computador = Computador::factory()->create();
 
-        $this->post(route('emprestimos.store'), [
+        $response = $this->withCredentials()->postJson(route('emprestimos.store'), [
             'computador_id' => $computador->id,
-        ])->assertRedirect(route('emprestimos.create'))
-            ->assertSessionHas('success', 'Computador retirado com sucesso.');
+            'usuario_rfid_uid' => 'a1:b2:c3:d4',
+        ]);
+        $response->assertCreated()
+            ->assertJsonPath('usuario.nome', 'Rafael')
+            ->assertJsonPath('computador.id', $computador->id);
 
         $this->assertDatabaseHas('emprestimos', [
             'computador_id' => $computador->id,
@@ -35,31 +39,37 @@ class EmprestimoControllerTest extends TestCase
         ]);
     }
 
-    public function test_unavailable_computer_cannot_be_withdrawn(): void
+    public function test_rfid_loan_authorizes_registered_user_and_available_computer(): void
     {
-        $this->usuarioAutenticado();
-        $computador = Computador::factory()->create(['status' => 'em_uso']);
+        config(['services.esp32.device_token' => 'token-esp32']);
+        $usuario = $this->criarUsuario('Carlos', 'carlos@example.com', '12345678900', 'A1B2C3D4');
+        $computador = Computador::factory()->create(['rfid_uid' => 'AABBCCDD']);
 
-        $this->from(route('emprestimos.create'))
-            ->post(route('emprestimos.store'), [
-                'computador_id' => $computador->id,
-            ])->assertRedirect(route('emprestimos.create'))
-            ->assertSessionHasErrors([
-                'computador_id' => 'Este computador não está disponível para retirada.',
-            ]);
+        $this->withHeader('X-DEVICE-TOKEN', 'token-esp32')
+            ->postJson('/api/rfid/emprestimo', [
+                'usuario_rfid_uid' => 'a1:b2:c3:d4',
+                'computador_rfid_uid' => 'aa-bb-cc-dd',
+            ])->assertCreated()
+            ->assertJsonPath('status', 'sucesso');
 
-        $this->assertDatabaseMissing('emprestimos', ['computador_id' => $computador->id]);
+        $this->assertDatabaseHas('emprestimos', [
+            'computador_id' => $computador->id,
+            'usuario_id' => $usuario->id,
+            'devolvido_em' => null,
+        ]);
+        $this->assertDatabaseHas('computadores', ['id' => $computador->id, 'status' => 'em_uso']);
     }
 
-    public function test_nonexistent_computer_cannot_be_withdrawn(): void
+    public function test_rfid_loan_rejects_unregistered_user(): void
     {
-        $this->usuarioAutenticado();
+        config(['services.esp32.device_token' => 'token-esp32']);
 
-        $this->from(route('emprestimos.create'))
-            ->post(route('emprestimos.store'), [
-                'computador_id' => 999999,
-            ])->assertRedirect(route('emprestimos.create'))
-            ->assertSessionHasErrors('computador_id');
+        $this->withHeader('X-DEVICE-TOKEN', 'token-esp32')
+            ->postJson('/api/rfid/emprestimo', [
+                'usuario_rfid_uid' => '00112233',
+                'computador_rfid_uid' => 'AABBCCDD',
+            ])->assertForbidden()
+            ->assertJsonPath('status', 'usuario_nao_autorizado');
     }
 
     public function test_authenticated_usuario_can_return_own_active_loan(): void
@@ -113,15 +123,12 @@ class EmprestimoControllerTest extends TestCase
             'valido_ate' => now()->addDay(),
         ]);
 
-        $this->withSession([
-            'usuario_id' => $usuario->id,
-            'token_usuario' => $token,
-        ]);
+        $this->withUnencryptedCookie('token_usuario', $token);
 
         return $usuario;
     }
 
-    private function criarUsuario(string $nome, string $email, string $cpf): Usuario
+    private function criarUsuario(string $nome, string $email, string $cpf, ?string $rfidUid = null): Usuario
     {
         return Usuario::query()->create([
             'nome' => $nome,
@@ -129,6 +136,7 @@ class EmprestimoControllerTest extends TestCase
             'senha' => Hash::make('senha-segura'),
             'cpf' => $cpf,
             'data_nascimento' => '1990-01-01',
+            'rfid_uid' => $rfidUid,
         ]);
     }
 }

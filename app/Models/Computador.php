@@ -16,6 +16,7 @@ class Computador extends Model
 
     protected $fillable = [
         'numero_patrimonio',
+        'rfid_uid',
         'status',
     ];
 

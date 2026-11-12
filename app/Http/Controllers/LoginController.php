@@ -37,12 +37,9 @@ class LoginController extends Controller
 
         $tokenUsuario = new TokenUsuario;
         $tokenUsuario->usuario_id = $usuario->id;
-        $tokenUsuario->token = bin2hex(random_bytes(32));
-        $tokenUsuario->valido_ate = now()->addDays(2);
+        $tokenUsuario->token = md5(random_bytes(32));
+        $tokenUsuario->valido_ate = now()->addDays(7);
         $tokenUsuario->save();
-        if (! $request->is('api/*')) {
-            $request->session()->put('token_usuario', $tokenUsuario->token);
-        }
 
         return response()->json([
             'erro' => 'n',
@@ -54,7 +51,7 @@ class LoginController extends Controller
 
     public function validarToken(Request $request)
     {
-        $token = $request->bearerToken();
+        $token = $request->cookie('token_usuario');
 
         $tokenValido = $token && TokenUsuario::where('token', $token)
             ->where('valido_ate', '>', now())
@@ -71,7 +68,7 @@ class LoginController extends Controller
 
     public function logout(Request $request)
     {
-        $token = $request->session()->pull('token_usuario');
+        $token = $request->cookie('token_usuario');
 
         if ($token) {
             TokenUsuario::where('token', $token)->delete();
@@ -87,7 +84,7 @@ class LoginController extends Controller
 
     public function logoutApi(Request $request)
     {
-        $token = $request->bearerToken();
+        $token = $request->cookie('token_usuario');
 
         if (! $token) {
             return response()->json(['mensagem' => 'Token não informado.'], 401);

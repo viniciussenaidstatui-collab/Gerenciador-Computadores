@@ -16,7 +16,7 @@ class ComputadorControllerTest extends TestCase
     public function test_unauthenticated_request_redirects_to_login(): void
     {
         $this->get(route('computadores.create'))
-            ->assertRedirect(route('login'));
+            ->assertRedirect(route('login_usuario'));
     }
 
     public function test_create_page_displays_the_authenticated_usuario_data(): void
@@ -81,6 +81,29 @@ class ComputadorControllerTest extends TestCase
         $this->assertDatabaseMissing('computadores', ['numero_patrimonio' => 'PAT-00020']);
     }
 
+    public function test_api_accepts_a_valid_authentication_cookie(): void
+    {
+        $this->usuarioAutenticado();
+
+        $this->withCredentials()->getJson('/api/computadores')->assertOk();
+    }
+
+    public function test_api_rejects_a_bearer_header_without_the_authentication_cookie(): void
+    {
+        $usuario = $this->criarUsuario('Carlos', 'carlos@example.com', '12345678900');
+        $token = 'token-de-teste-'.$usuario->id;
+
+        TokenUsuario::query()->create([
+            'usuario_id' => $usuario->id,
+            'token' => $token,
+            'valido_ate' => now()->addDay(),
+        ]);
+
+        $this->withHeader('Authorization', 'Bearer '.$token)
+            ->getJson('/api/computadores')
+            ->assertUnauthorized();
+    }
+
     private function usuarioAutenticado(): Usuario
     {
         $usuario = $this->criarUsuario('Carlos', 'carlos@example.com', '12345678900');
@@ -92,10 +115,7 @@ class ComputadorControllerTest extends TestCase
             'valido_ate' => now()->addDay(),
         ]);
 
-        $this->withSession([
-            'usuario_id' => $usuario->id,
-            'token_usuario' => $token,
-        ]);
+        $this->withUnencryptedCookie('token_usuario', $token);
 
         return $usuario;
     }

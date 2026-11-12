@@ -14,6 +14,14 @@ class Usuario extends Model
         'senha',
         'cpf',
         'data_nascimento',
+        'rfid_uid',
 
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'is_admin' => 'boolean',
+        ];
+    }
 }

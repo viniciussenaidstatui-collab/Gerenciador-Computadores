@@ -17,6 +17,8 @@ class Emprestimo extends Model
         'usuario_id',
         'retirado_em',
         'devolvido_em',
+        'retirada_autorizada_por',
+        'devolucao_autorizada_por',
     ];
 
     protected function casts(): array
@@ -35,5 +37,15 @@ class Emprestimo extends Model
     public function usuario(): BelongsTo
     {
         return $this->belongsTo(Usuario::class);
+    }
+
+    public function retiradaAutorizadaPor(): BelongsTo
+    {
+        return $this->belongsTo(Responsavel::class, 'retirada_autorizada_por');
+    }
+
+    public function devolucaoAutorizadaPor(): BelongsTo
+    {
+        return $this->belongsTo(Responsavel::class, 'devolucao_autorizada_por');
     }
 }

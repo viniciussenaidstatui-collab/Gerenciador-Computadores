@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Computador;
-use App\Models\TokenUsuario;
 use App\Models\Usuario;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -48,19 +47,7 @@ class ComputadorController extends Controller
 
     public function storeApi(Request $request)
     {
-        $token = $request->bearerToken();
-        $tokenUsuario = $token
-            ? TokenUsuario::query()
-                ->where('token', $token)
-                ->where('valido_ate', '>', now())
-                ->first()
-            : null;
-
-        if (! $tokenUsuario) {
-            return response()->json(['mensagem' => 'Token inválido ou expirado.'], 401);
-        }
-
-        $usuario = Usuario::query()->find($tokenUsuario->usuario_id);
+        $usuario = $request->attributes->get('usuario');
 
         if (! $usuario) {
             return response()->json(['mensagem' => 'Usuário não encontrado.'], 401);
@@ -88,6 +75,20 @@ class ComputadorController extends Controller
             'mensagem' => 'Computador registrado com sucesso.',
             'computador' => $computador,
         ], 201);
+    }
+
+    public function indexApi(Request $request)
+    {
+        $validated = $request->validate([
+            'status' => ['nullable', 'string', 'in:disponivel,em_uso'],
+        ]);
+
+        $computadores = Computador::query()
+            ->when($validated['status'] ?? null, fn ($query, $status) => $query->where('status', $status))
+            ->orderBy('numero_patrimonio')
+            ->get();
+
+        return response()->json(['computadores' => $computadores]);
     }
 
     private function usuarioAutenticado(Request $request): Usuario

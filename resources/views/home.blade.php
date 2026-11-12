@@ -212,6 +212,20 @@
                     Retirar ou devolver computador
                 </a>
 
+                <a href="{{ route('computadores.rfid.create') }}" class="btn">
+                    Cadastrar com etiqueta RFID
+                </a>
+
+                <a href="{{ route('emprestimos.historico') }}" class="btn">
+                    Histórico de empréstimos
+                </a>
+
+                @if ($usuario?->is_admin)
+                    <a href="{{ route('admin.responsaveis.index') }}" class="btn">
+                        Gerenciar responsáveis
+                    </a>
+                @endif
+
             </div>
 
         </section>
@@ -222,6 +236,8 @@
         Gerenciador de Computadores
     </footer>
 
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery.cookie@1.4.1/jquery.cookie.min.js"></script>
     @vite('resources/js/authenticated.js')
 
 </body>

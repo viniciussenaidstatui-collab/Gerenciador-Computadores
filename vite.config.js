@@ -9,7 +9,11 @@ export default defineConfig({
             input: [
                 'resources/css/app.css',
                 'resources/js/app.js',
+                'resources/js/login.js',
                 'resources/js/authenticated.js',
+                'resources/js/luzes.js',
+                'resources/js/rfid.js',
+                'resources/js/emprestimos-rfid.js',
             ],
             refresh: true,
             fonts: [
