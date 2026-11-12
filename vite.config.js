@@ -13,6 +13,7 @@ export default defineConfig({
                 'resources/js/authenticated.js',
                 'resources/js/luzes.js',
                 'resources/js/rfid.js',
+                'resources/js/emprestimos-rfid.js',
             ],
             refresh: true,
             fonts: [

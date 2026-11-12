@@ -16,6 +16,7 @@ class UsuarioController extends Controller
             'senha' => 'required|string|min:6',
             'cpf' => 'required|string|max:11',
             'data_nascimento' => 'required',
+            'rfid_uid' => ['nullable', 'string', 'regex:/\A(?:[A-Fa-f0-9]{8}|[A-Fa-f0-9]{10}|[A-Fa-f0-9]{14}|[A-Fa-f0-9]{20})\z/', 'unique:usuario,rfid_uid'],
         ]);
 
         $usuario = new Usuario;
@@ -31,6 +32,9 @@ class UsuarioController extends Controller
             $usuario->senha = bcrypt($request->senha);
             $usuario->cpf = $request->cpf;
             $usuario->data_nascimento = $request->data_nascimento;
+            $usuario->rfid_uid = $request->filled('rfid_uid')
+                ? strtoupper($request->string('rfid_uid')->toString())
+                : null;
             $usuario->save();
 
             return response()->json(['erro' => 'n', 'mensagem' => 'Usuário cadastrado com sucesso!'], 200);

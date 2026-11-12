@@ -216,6 +216,16 @@
                     Cadastrar com etiqueta RFID
                 </a>
 
+                <a href="{{ route('emprestimos.historico') }}" class="btn">
+                    Histórico de empréstimos
+                </a>
+
+                @if ($usuario?->is_admin)
+                    <a href="{{ route('admin.responsaveis.index') }}" class="btn">
+                        Gerenciar responsáveis
+                    </a>
+                @endif
+
             </div>
 
         </section>

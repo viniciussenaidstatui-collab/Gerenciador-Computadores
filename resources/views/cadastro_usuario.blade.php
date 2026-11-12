@@ -51,6 +51,14 @@
                     <label for="data_nascimento" class="form-label">Data de nascimento</label>
                     <input type="date" class="form-control" id="data_nascimento" name="data_nascimento" required>
                 </div>
+
+                <div class="col-md-12 mb-3">
+                    <label for="rfid_uid" class="form-label">UID do RFID pessoal</label>
+                    <input type="text" class="form-control" id="rfid_uid" name="rfid_uid" maxlength="20"
+                        pattern="[A-Fa-f0-9]{8}|[A-Fa-f0-9]{10}|[A-Fa-f0-9]{14}|[A-Fa-f0-9]{20}"
+                        placeholder="Ex.: 04A1B2C3D4">
+                    <div class="form-text">Necessário para retirar computadores pelo leitor.</div>
+                </div>
             </div>
 
             <button type="submit" id="btn-cadastrar" class="btn btn-primary w-100 mt-2">Cadastrar</button>

@@ -3,7 +3,9 @@
 use App\Http\Controllers\ComputadorController;
 use App\Http\Controllers\EmprestimoController;
 use App\Http\Controllers\LoginController;
+use App\Http\Controllers\RfidController;
 use App\Http\Controllers\UsuarioController;
+use App\Http\Middleware\DeviceTokenMiddleware;
 use App\Http\Middleware\LoggadoMiddleware;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -24,4 +26,12 @@ Route::middleware(LoggadoMiddleware::class)->group(function () {
     Route::get('/emprestimos/ativos', [EmprestimoController::class, 'listarAtivosApi']);
     Route::get('/emprestimos/historico', [EmprestimoController::class, 'historicoApi']);
     Route::post('/emprestimos/{emprestimo}/devolver', [EmprestimoController::class, 'devolverApi']);
+});
+
+Route::post('/rfid/ler', [RfidController::class, 'ler'])
+    ->middleware(['throttle:rfid-reader', DeviceTokenMiddleware::class]);
+
+Route::middleware(DeviceTokenMiddleware::class)->prefix('rfid')->group(function (): void {
+    Route::post('/emprestimo', [EmprestimoController::class, 'storeRfid']);
+    Route::post('/devolucao', [EmprestimoController::class, 'devolverRfid']);
 });

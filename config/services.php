@@ -37,6 +37,12 @@ return [
 
     'esp32' => [
         'base_url' => env('ESP32_BASE_URL'),
+        'device_token' => env('ESP32_DEVICE_TOKEN'),
+    ],
+
+    'initial_responsavel' => [
+        'nome' => env('RFID_INITIAL_RESPONSAVEL_NOME'),
+        'uid' => env('RFID_INITIAL_RESPONSAVEL_UID'),
     ],
 
 ];

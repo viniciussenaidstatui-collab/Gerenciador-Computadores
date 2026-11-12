@@ -18,6 +18,7 @@ $(document).ready(function () {
                 senha: $("#senha").val(),
                 data_nascimento: $("#data_nascimento").val(),
                 cpf: $("#cpf").val(),
+                rfid_uid: $("#rfid_uid").val(),
             },
             success: function (response) {
                 if (response.erro == 'n') {
